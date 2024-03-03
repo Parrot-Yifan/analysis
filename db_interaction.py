@@ -60,7 +60,7 @@ def remove_existing_company_stock(ticker):
     supabase.auth.sign_out()
 
 
-def insert_company_stock(company, date, stock):
+def insert_company_stock(ticker, date, stock):
 
     '''
     Inserts an entry into the company_stock table.
@@ -69,8 +69,8 @@ def insert_company_stock(company, date, stock):
     # Authenticate with Supabase using email and password.
     authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
 
-     # Retrieve company_id using the company name.
-    company_id_query = supabase.table('company').select('id').eq('name', company).execute()
+     # Retrieve company_id using the ticker.
+    company_id_query = supabase.table('company').select('id').eq('ticker', ticker).execute()
 
     # Assuming only one entry should match each condition.
     if len(company_id_query.data) == 1:
