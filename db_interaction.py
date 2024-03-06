@@ -1,6 +1,6 @@
 from supabase import (
     create_client,
-    Client,
+    Client
 )  # Import Supabase client for interacting with the Supabase database
 
 # ============================================================
@@ -8,22 +8,22 @@ from supabase import (
 # ============================================================
 
 # Makes the connection to the Supabase client.
-SUPABASE_URL = "https://irendefjtnvixqkiehya.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlyZW5kZWZqdG52aXhxa2llaHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDUwNzcxNTUsImV4cCI6MjAyMDY1MzE1NX0.IaTi8UJP4JCcjP35RUNu2gLE3qd_CzQcHgy2y3UTaew"
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# SUPABASE_URL = "https://irendefjtnvixqkiehya.supabase.co"
+# SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlyZW5kZWZqdG52aXhxa2llaHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDUwNzcxNTUsImV4cCI6MjAyMDY1MzE1NX0.IaTi8UJP4JCcjP35RUNu2gLE3qd_CzQcHgy2y3UTaew"
+# supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def retrieve_DB_data():
+def retrieve_DB_data(supabase):
 
     '''
     Retrieves all the company names and news source names from the database.
     '''
     
-    # Authenticate with Supabase using email and password.
-    authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
+    # # Authenticate with Supabase using email and password.
+    # authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
 
     # Get lists of company names and news site names from the database.
-    company_names = get_company_names()
-    news_sites = get_news_sites()
+    company_names = get_company_names(supabase)
+    news_sites = get_news_sites(supabase)
 
     # Create a dictionary to store the retrieved data.
     data_dict = {
@@ -31,13 +31,13 @@ def retrieve_DB_data():
         "news_sites": news_sites
     }
 
-    # Sign out from Supabase authentication.
-    supabase.auth.sign_out()
+    # # Sign out from Supabase authentication.
+    # supabase.auth.sign_out()
 
     # Return the dictionary containing company names and news site names.
     return data_dict
 
-def get_company_names():
+def get_company_names(supabase):
 
     '''
     Gets all the company names from the database.
@@ -49,11 +49,14 @@ def get_company_names():
     # Extract company names from the retrieved data.
     company_names = [company['name'] for company in data.data]
 
+    # # Extract company aliases from the data too.
+    # data = supabase.table("company").select("aliases").execute()
+
     # Return the list of company names.
     return company_names
 
 
-def get_news_sites():
+def get_news_sites(supabase):
 
     '''
     Gets all the news site names from the database.
@@ -69,14 +72,14 @@ def get_news_sites():
     return news_site_names
 
 
-def insert_news(current_datetime, title, news_date, url, body, source_url, summary, sentiment_score):
+def insert_news(current_datetime, title, news_date, url, body, source_url, summary, sentiment_score, supabase):
     
     '''
     Inserts an entry into the 'news' table.
     '''
 
-    # Authenticate with Supabase using email and password.
-    authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
+    # # Authenticate with Supabase using email and password.
+    # authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
 
     print(f"Inserting article: {title} from {source_url}")
 
@@ -102,18 +105,18 @@ def insert_news(current_datetime, title, news_date, url, body, source_url, summa
             "overall_sentiment": sentiment_score
         }).execute()
 
-    # Sign out from Supabase authentication.
-    supabase.auth.sign_out()
+    # # Sign out from Supabase authentication.
+    # supabase.auth.sign_out()
 
 
-def insert_company_news(url, company, average_score):
+def insert_company_news(url, company, average_score, supabase):
 
     '''
     Inserts an entry into the company_news table.
     '''
 
-    # Authenticate with Supabase using email and password.
-    authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
+    # # Authenticate with Supabase using email and password.
+    # authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
     print(f"Inserting company news: {company} = {average_score}")
 
     # Retrieve news_id using the news URL.
@@ -134,17 +137,17 @@ def insert_company_news(url, company, average_score):
             "public_impact": average_score
         }).execute()
 
-    # Sign out from Supabase authentication.
-    supabase.auth.sign_out()
+    # # Sign out from Supabase authentication.
+    # supabase.auth.sign_out()
 
-def update_text(url, body):
+def update_text(url, body, supabase):
 
     '''
     Updates the 'text' field of the relevant entry (using the URL as an identifier) in the 'news' table of the database.
     '''
     
-    # Authenticate with Supabase using email and password.
-    authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
+    # # Authenticate with Supabase using email and password.
+    # authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
 
     # Retrieve news_id using the news URL.
 
@@ -156,17 +159,17 @@ def update_text(url, body):
         # Update the 'text' field of the relevant news entry in the 'news' table.
         data, count = supabase.table('news').update({"text": body}).eq('id', news_id).execute()
 
-    # Sign out from Supabase authentication.
-    supabase.auth.sign_out()
+    # # Sign out from Supabase authentication.
+    # supabase.auth.sign_out()
 
-def get_tickers(mentioned_companies):
+def get_tickers(mentioned_companies, supabase):
 
     '''
     Given a list of companies, it converts the list into a list of tickers.
     '''
 
-    # Authenticate with Supabase using email and password.
-    authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
+    # # Authenticate with Supabase using email and password.
+    # authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
     tickers = []
 
     # Retrieve ticker using the company name.
@@ -178,30 +181,30 @@ def get_tickers(mentioned_companies):
             ticker_value = ticker_name_query.data[0]['ticker']
             tickers.append(ticker_value)
 
-    # Sign out from Supabase authentication.
-    supabase.auth.sign_out()
+    # # Sign out from Supabase authentication.
+    # supabase.auth.sign_out()
 
     return tickers
 
-def get_news_source_name(source_url):
+def get_news_source_name(source_url, supabase):
     
     '''
     Given a source URL, find its source name.
     '''
 
-    # Authenticate with Supabase using email and password.
-    authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
+    # # Authenticate with Supabase using email and password.
+    # authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
 
     news_source_name_query = supabase.table('news_site').select('name').eq('url', source_url).execute()
 
     if len(news_source_name_query.data) == 1:
     
-        # Sign out from Supabase authentication.
-        supabase.auth.sign_out()
-
+        # # Sign out from Supabase authentication.
+        # supabase.auth.sign_out()
+    
         return news_source_name_query.data[0]['name']
 
-    supabase.auth.sign_out()
+    # supabase.auth.sign_out()
 
     return None
 
