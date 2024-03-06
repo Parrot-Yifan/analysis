@@ -1,11 +1,13 @@
 import requests  # Import requests for making HTTP requests
+from requests.exceptions import RequestException
 import re  # Import re for regular expressions
-import json  # Import json for working with JSON data
 from datetime import datetime, timezone  # Import datetime for handling date and time
 
 # ============================================================
 # START OF PROGRAM
 # ============================================================
+
+TIME_WINDOW = 26000
 
 def url_fetch_googlerss(query_term):
 
@@ -13,24 +15,33 @@ def url_fetch_googlerss(query_term):
     Fetch recent news from the Google News RSS Feed for a specific company and news site.
     """
 
+    # Initialize the variable with a default value.
+    fetched_url = ""
+
     # Generate the URL with a keyword search for a specific company.
     url = "https://news.google.com/rss/search?q={}+when:1y&hl=en-GB&gl=GB&ceid=GB:en&orderby=published".format(
         query_term
     )
 
-    # Make an HTTP GET request to the generated URL.
-    response = requests.get(url)
-    # Check if the request was successful (status code 200).
-    if response.status_code == 200:
+    try:
+        # Make an HTTP GET request to the generated URL.
+        # response = requests.get(url)
+        response = requests.get(url)
 
-        # Convert the response into string.
-        fetched_url = response.text
-    else:
+        # Check if the request was successful (status code 200).
+        if response.status_code == 200:
 
-        # Print an error message if the request was unsuccessful.
-        print(
-            f"Error: Unable to fetch the web page. Status code: {response.status_code}"
-        )
+            # Convert the response into string.
+            fetched_url = response.text
+        else:
+
+            # Print an error message if the request was unsuccessful.
+            print(
+                f"Error: Unable to fetch the web page. Status code: {response.status_code}"
+            )
+    except RequestException as e:
+        # Handle connection-related exceptions.
+        print(f"An error occurred during the request: {e}")
 
     # Return the fetched URL content.
     return fetched_url
@@ -109,8 +120,8 @@ def valid_check(entries, site):
         time_difference = current_time - pub_date
 
         # Check if the specified news sites is  present in the source URL and if the site is published within 5 minutes of the time now.
-        if site.lower() in source_url and time_difference.total_seconds() <= 300:
-        # if site.lower() in source_url and time_difference.days <= 1:
+        if site.lower() in source_url and time_difference.total_seconds() <= TIME_WINDOW:
+        # if site.lower() in source_url and time_difference.days <= 0.2:
             
             # If the source URL contains any of the specified news sites, consider it a valid entry.
             # Fetch the final URL after following any redirections.
