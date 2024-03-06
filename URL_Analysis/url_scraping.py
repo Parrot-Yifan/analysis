@@ -540,18 +540,6 @@ def scrape_techcrunch(soup, converter):
     return article
 
 
-def scrape_scmp(soup, converter):
-    article = {'title': '', 'body': ''}
-    segment = ''  # use to store article
-
-    # get the title
-    articleTitle = str(soup.find('h2'))
-
-    article['title'] = articleTitle
-
-    return article
-
-
 # scrape dictionary
 news_sites = {
     'cnbc.com': scrape_cnbc,
@@ -568,7 +556,6 @@ news_sites = {
     'bbc.co.uk': scrape_bbc,
     'politico.eu': scrape_politicoeu,
     'techcrunchl.com': scrape_techcrunch,
-    'scmp.com': scrape_scmp
 }
 
 
