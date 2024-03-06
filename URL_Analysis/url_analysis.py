@@ -25,11 +25,11 @@ from nltk.tokenize import sent_tokenize
 
 url_cache = deque(maxlen=100)  # Initiliaze a 100 URL length cache.
 url_cache_lock = threading.Lock()  # Set a thread lock for this shared structure.
-title_lock = threading.Lock()
+title_lock = threading.Lock() # Initialize threading lock for title.
 MAX_WORKERS = 3  # Set the maximum number of threads in the thread pool here.
 
 
-def url_analysis_function():
+def url_analysis_function(supabase):
 
     """
     Main URL analysis function which handles main logic.
@@ -39,15 +39,17 @@ def url_analysis_function():
         all_google_rss_entries = []
 
         # Retrieve DB data.
-        db_data = retrieve_DB_data()
-        company_names = db_data["company_names"]
+        db_data = retrieve_DB_data(supabase)
+        company_names = db_data["company_names"] #Include alias names too.
         news_sites = db_data["news_sites"]
 
         # Fetch news articles (from Google News), querying each company.
 
         for company in company_names:
             for site in news_sites:
+
                 query_term = f"{company} {site}"  # Concatenate company and site into a single query term.
+                
                 google_rss = url_fetch_googlerss(query_term)
 
                 # Extract the relevant data needed.
@@ -68,7 +70,7 @@ def url_analysis_function():
 
             # Create a dictionary of futures, where each future corresponds to processing an entry with the 'process_entry' function.
             futures = {
-                executor.submit(process_entry, entry, company_names, ): entry
+                executor.submit(process_entry, entry, company_names, supabase): entry
                 for entry in all_google_rss_entries
             }
 
@@ -122,7 +124,7 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 
-def process_entry(entry, company_names, ):
+def process_entry(entry, company_names, supabase):
 
     """
     Processes each filtered entry.
@@ -135,7 +137,7 @@ def process_entry(entry, company_names, ):
     news_date = entry["pub_date"]
 
     #Modify the title to not include the news source if it exists.
-    title = modify_title(title, source_url)
+    title = modify_title(title, source_url, supabase)
 
     # Convert URL to lower case for comparison.
     url_lower = url.lower()
@@ -152,10 +154,10 @@ def process_entry(entry, company_names, ):
         url_cache.append(url)
 
         # Analyze the article content.
-        handle_article(title, url, source_url, news_date, company_names)
+        handle_article(title, url, source_url, news_date, company_names, supabase)
 
 
-def handle_article(title, url, source_url, news_date, company_names):
+def handle_article(title, url, source_url, news_date, company_names, supabase):
 
     """
     Processes each article's information.
@@ -190,13 +192,13 @@ def handle_article(title, url, source_url, news_date, company_names):
         )
 
         # Insert the main article information into the 'news' table of the DB.
-        insert_news(current_datetime, title, news_date, url, body, source_url, summary, sentiment_score, )
+        insert_news(current_datetime, title, news_date, url, body, source_url, summary, sentiment_score, supabase)
 
-        # Gather all the mentioned companies in the article.
+        # Gather all the mentioned companies in the article, including aliases.
         mentioned_companies = [
-            company for company in company_names if  f' {company}' in body #MODIFIED TO ENSURE CORRECT COMPANY SEARCH!
+            # company for company in company_names if company in body 
+            company for company in company_names if f'{company}' in body
         ]
-
 
         # Initialise a set of unique modified sentences that mention all companies.
         total_modified_sentences = set()
@@ -209,7 +211,7 @@ def handle_article(title, url, source_url, news_date, company_names):
             if relevant_sentences:
                 # Perform sentiment analysis on these sentences for the specific company.
                 average_score, modified_sentences = sentiment_analysis_company(
-                    relevant_sentences, 
+                    relevant_sentences, supabase
                 )
 
                 # Update the set with the modified sentences for the company.
@@ -217,13 +219,13 @@ def handle_article(title, url, source_url, news_date, company_names):
 
                 # Insert the entry into the 'company_news' table in the DB.
 
-                insert_company_news(url, company, average_score, )
+                insert_company_news(url, company, average_score, supabase)
 
         # Modify the body with the modified sentences.
         body = modify_body(body, list(total_modified_sentences))
 
         # Update the relevant 'news' table entry with this body, using the URL as an indentifier.
-        update_text(url, body, )
+        update_text(url, body, supabase)
 
 
 def get_relevant_sentences(text, target_company):
@@ -237,11 +239,11 @@ def get_relevant_sentences(text, target_company):
     # # Iterate over each sentence and remove "\n" characters.
     cleaned_sentences = [sentence.replace("\n", " ") for sentence in sentences]
 
-    # Gather sentences that mention the target company.
+    # Gather sentences that mention the target company. Include aliases!
     relevant_sentences = [
         sentence.strip()
         for sentence in cleaned_sentences 
-        if target_company.lower() in sentence.lower()
+        if f'{target_company}' in sentence
     ]
 
     print(relevant_sentences)
@@ -282,7 +284,7 @@ def modify_body(body, modified_sentences):
     return body
 
 
-def modify_title(title, source_url, ):
+def modify_title(title, source_url, supabase):
 
     '''
     Modifies the news headline to remove the news source if it is present.
@@ -290,7 +292,7 @@ def modify_title(title, source_url, ):
 
     # Strip "https://" from the front of the source_url
     source_url = source_url.replace("https://", "")
-    source_name = get_news_source_name(source_url, )
+    source_name = get_news_source_name(source_url, supabase)
 
     domain = source_name
 
