@@ -3,7 +3,7 @@ from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
 )  # Import transformers from Hugging Face for summarization/sentiment analysis.
-
+import re
 from db_interaction import * #Import database interaction functions.
 
 # ============================================================
@@ -43,7 +43,7 @@ def sentiment_analysis_article(sentences):
     return average_score
 
 
-def sentiment_analysis_company(sentences):
+def sentiment_analysis_company(sentences, supabase):
 
     """
     Performs sentiment analysis on a list of sentences.
@@ -77,7 +77,7 @@ def sentiment_analysis_company(sentences):
         mapped_score = map_sentiment_to_number(result[0]["label"], result[0]["score"])
         total_score += mapped_score
         
-        tickers = find_mentioned_tickers(sentence)
+        tickers = find_mentioned_tickers(sentence, supabase)
         # Modify the sentence that was analysed for sentiment analysis and add to a list of modified sentences.
         modified_sentence = wrap_sentence_with_html(
             sentence, map_sentiment_to_number(result[0]["label"], result[0]["score"]), tickers
@@ -122,20 +122,22 @@ def wrap_sentence_with_html(sentence, score, tickers):
     html_structure = f'<span score="{score}" tickers="{tickers}">{sentence}</span>'
     return html_structure
 
-def find_mentioned_tickers(sentence):
+def find_mentioned_tickers(sentence, supabase):
 
     '''
     Finds all the tickers of companies mentioned in a sentence.
     '''
 
-    db_data = retrieve_DB_data()
+    #Instead retrieve any aliases too and append to list.
+    db_data = retrieve_DB_data(supabase)
     company_names = db_data["company_names"]
 
     mentioned_companies = [
-            company for company in company_names if f' {company}' in sentence
+            # company for company in company_names if {company} in sentence
+            company for company in company_names if f'{company}' in sentence
         ]
     
-    tickers = get_tickers(mentioned_companies)
+    tickers = get_tickers(mentioned_companies, supabase)
 
     return tickers
 
