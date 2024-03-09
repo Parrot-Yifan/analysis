@@ -54,7 +54,7 @@ def remove_existing_company_stock(ticker):
     if len(company_id_query.data) == 1:
         company_id = company_id_query.data[0]['id']
 
-        data, count = supabase.table('company_stock').delete().eq('id', company_id).execute()
+        data, count = supabase.table('company_stock').delete().eq('company_id', company_id).execute()
 
     # Sign out from Supabase authentication.
     supabase.auth.sign_out()
