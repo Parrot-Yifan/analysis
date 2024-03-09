@@ -566,6 +566,7 @@ news_sites = {
     'finance.yahoo.com': scrape_yahoo,
     'theverge.com': scrape_verge,
     'bbc.co.uk': scrape_bbc,
+    'bbc.com': scrape_bbc,
     'politico.eu': scrape_politicoeu,
     'techcrunch.com': scrape_techcrunch,
     'scmp.com': scrape_scmp
