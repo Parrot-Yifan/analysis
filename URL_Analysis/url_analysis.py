@@ -45,24 +45,26 @@ def url_analysis_function(supabase):
 
         # Fetch news articles (from Google News), querying each company.
 
-        for company in company_names:
-            for site in news_sites:
+        for company_entry in company_names:
+            for company_name in company_entry['names']:  # Iterate through each name in the list.
+                for site in news_sites:
+                    query_term = f"{company_name} {site}"  # Concatenate company and site into a single query term.
 
-                query_term = f"{company} {site}"  # Concatenate company and site into a single query term.
-                
-                google_rss = url_fetch_googlerss(query_term)
+                    google_rss = url_fetch_googlerss(query_term)
 
-                # Extract the relevant data needed.
-                google_rss_entries = extract_google_data(google_rss)
+                    # Extract the relevant data needed.
+                    google_rss_entries = extract_google_data(google_rss)
 
-                google_rss_entries = valid_check(google_rss_entries, site)
+                    google_rss_entries = valid_check(google_rss_entries, site)
 
-                all_google_rss_entries.extend(google_rss_entries)
+                    all_google_rss_entries.extend(google_rss_entries)
 
         all_google_rss_entries.sort(
             key=lambda x: x["pub_date"], reverse=False
         )  # Sort the entries from oldest to newest.
 
+        # all_google_rss_entries = [{'title': 'How much energy will new semiconductor factories burn through in the US? - The Verge', 'url': 'https://www.theverge.com/2024/3/6/24091367/semiconductor-manufacturing-us-electricity-consumption-renewable-energy-report', 'source_url': 'https://www.theverge.com', 'pub_date': '2024-03-06T13:00:00+00:00'}, {'title': "Microsoft engineer warns company's AI tool creates violent, sexual images, ignores copyrights - CNBC", 'url': 'https://www.cnbc.com/2024/03/06/microsoft-ai-engineer-says-copilot-designer-creates-disturbing-images.html', 'source_url': 'https://www.cnbc.com', 'pub_date': '2024-03-06T13:30:01+00:00'}]
+        # all_google_rss_entries = [{'title': "Google's Gemini debacle a make-or-break moment, analyst says - Fox Business", 'url': 'https://www.foxbusiness.com/markets/googles-gemini-debacle-make-break-moment-analyst', 'source_url': 'https://www.foxbusiness.com', 'pub_date': '2024-03-06T20:36:00+00:00'}]
         print(all_google_rss_entries)
 
         # Process each filtered entry concurrently using ThreadPoolExecutor.
@@ -136,9 +138,6 @@ def process_entry(entry, company_names, supabase):
     source_url = entry["source_url"]
     news_date = entry["pub_date"]
 
-    #Modify the title to not include the news source if it exists.
-    title = modify_title(title, source_url, supabase)
-
     # Convert URL to lower case for comparison.
     url_lower = url.lower()
 
@@ -163,9 +162,6 @@ def handle_article(title, url, source_url, news_date, company_names, supabase):
     Processes each article's information.
     """
 
-    # #Remove https://www. from the beginning.
-    # source_url = source_url.replace("https://www.", "")
-
     # Scrape each URL for the main article content.
     scrape_result = scrape(url, source_url)
 
@@ -177,12 +173,27 @@ def handle_article(title, url, source_url, news_date, company_names, supabase):
         # Format the body into the appropriate format.
         body = format_body(body)
 
+        # Gather all the mentioned companies in the article, including aliases. 
+        # mentioned_companies = [
+        #     company_name 
+        #     for company_entry in company_names 
+        #     for company_name in company_entry['names'] 
+        #     if f'{company_name}' in body
+        # ]
+
+        mentioned_companies = [
+            company_entry['names']
+            for company_entry in company_names
+            if any(company_name in body for company_name in company_entry['names'])
+        ]
+
+        #If there are no mentioned companies, find a way to exit and move onto the next URL.
+        if not mentioned_companies:
+            print(f"No mentioned companies in the article at URL: {url}. Skipping.")
+            return
+
         # Summarize the article body.
         summary = summarize_text(body)
-
-        #Conduct sentiment analysis on the entire article.
-        # sentences = re.split(r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.)\s*(?=\S)", body)
-
         sentences = sent_tokenize(body)
         sentiment_score = sentiment_analysis_article(sentences)
 
@@ -194,20 +205,13 @@ def handle_article(title, url, source_url, news_date, company_names, supabase):
         # Insert the main article information into the 'news' table of the DB.
         insert_news(current_datetime, title, news_date, url, body, source_url, summary, sentiment_score, supabase)
 
-        # Gather all the mentioned companies in the article, including aliases.
-        mentioned_companies = [
-            # company for company in company_names if company in body 
-            company for company in company_names if f'{company}' in body
-        ]
-
         # Initialise a set of unique modified sentences that mention all companies.
         total_modified_sentences = set()
 
         for company in mentioned_companies:
             # For each company, gather relevant sentences about it in the article.
             relevant_sentences = get_relevant_sentences(body, company)
-            
-            
+
             if relevant_sentences:
                 # Perform sentiment analysis on these sentences for the specific company.
                 average_score, modified_sentences = sentiment_analysis_company(
@@ -218,7 +222,6 @@ def handle_article(title, url, source_url, news_date, company_names, supabase):
                 total_modified_sentences.update(modified_sentences)
 
                 # Insert the entry into the 'company_news' table in the DB.
-
                 insert_company_news(url, company, average_score, supabase)
 
         # Modify the body with the modified sentences.
@@ -228,25 +231,39 @@ def handle_article(title, url, source_url, news_date, company_names, supabase):
         update_text(url, body, supabase)
 
 
-def get_relevant_sentences(text, target_company):
+def get_relevant_sentences(text, target_companies):
     """
-    Takes an article's text and a company name and returns all sentences in the article that mention that company.
+    Takes an article's text and a list of company names and returns all sentences in the article that mention any of those companies.
     """
     
     # Use NLTK to split the entire text into sentences.
     sentences = sent_tokenize(text)
 
-    # # Iterate over each sentence and remove "\n" characters.
+    # Iterate over each sentence and remove "\n" characters.
     cleaned_sentences = [sentence.replace("\n", " ") for sentence in sentences]
 
-    # Gather sentences that mention the target company. Include aliases!
-    relevant_sentences = [
-        sentence.strip()
-        for sentence in cleaned_sentences 
-        if f'{target_company}' in sentence
-    ]
+    # # Gather sentences that mention any of the target companies. Include aliases!
+    # relevant_sentences = [
+    #     sentence.strip()
+    #     for sentence in cleaned_sentences
+    #     for company_name in target_companies
+    #     if company_name in sentence
+    # ]
 
-    print(relevant_sentences)
+    # print(relevant_sentences)
+    # return relevant_sentences
+
+    # Use a set to gather unique sentences that mention any of the target companies. Include aliases!
+    relevant_sentences_set = {
+        sentence.strip()
+        for sentence in cleaned_sentences
+        for company_name in target_companies
+        if company_name in sentence
+    }
+
+    # Convert the set back to a list if you need to maintain some form of order or work with the list type
+    relevant_sentences = list(relevant_sentences_set)
+
     return relevant_sentences
 
 
@@ -268,13 +285,17 @@ def modify_body(body, modified_sentences):
 
     # Split the body into sentences
     original_sentences = sent_tokenize(body)
-    
+    # print("Modified")
+    # print(modified_sentences)
+
    # Iterate through each modified sentence
     for modified in modified_sentences:
         # Check if the original sentence is a substring of the modified sentence
         for original in original_sentences:
-            
-            cleaned_original = original.replace("\n", " ")
+            cleaned_original = original.replace("\n", " ").strip()
+            # cleaned_original = re.sub(r'\n+', ' ', original)
+            # print(cleaned_original)
+            #INVESTIGATE ISSUE OF INCORRECT REPLACEMENTS!
 
             if cleaned_original in modified:
                 # Replace the original sentence with the modified sentence and update body
@@ -282,32 +303,6 @@ def modify_body(body, modified_sentences):
                 break
     
     return body
-
-
-def modify_title(title, source_url, supabase):
-
-    '''
-    Modifies the news headline to remove the news source if it is present.
-    '''
-
-    # Strip "https://" from the front of the source_url
-    source_url = source_url.replace("https://", "")
-    source_name = get_news_source_name(source_url, supabase)
-
-    domain = source_name
-
-    # Check if the domain is present in the title
-    if domain and domain.lower() in title.lower():
-
-        # Remove the domain and any characters before it
-        index = title.lower().find(domain.lower())
-        if index != -1:
-            title = title[:index] + title[index + len(domain):]
-
-        # Remove any leading or trailing dashes or spaces
-        title = title.strip("- ")
-
-    return title.strip()
 
 # ============================================================
 # END OF PROGRAM
