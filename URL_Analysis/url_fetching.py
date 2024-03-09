@@ -1,5 +1,5 @@
 import requests  # Import requests for making HTTP requests
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, ConnectionError, HTTPError, Timeout
 import re  # Import re for regular expressions
 from datetime import datetime, timezone  # Import datetime for handling date and time
 
@@ -7,7 +7,7 @@ from datetime import datetime, timezone  # Import datetime for handling date and
 # START OF PROGRAM
 # ============================================================
 
-TIME_WINDOW = 26000
+TIME_WINDOW = 15000
 
 def url_fetch_googlerss(query_term):
 
@@ -109,31 +109,37 @@ def valid_check(entries, site):
     
     # Iterate through each entry in the provided list of entries.
     for entry in entries:
-
-        source_url = entry.get("source_url", "")  # Get the source URL from the entry.
-        pub_date_str = entry.get("pub_date", "")  # Get the publication date string from the entry.
-        
-        # Convert the publication date string to a datetime object.
-        pub_date = pub_date = datetime.strptime(pub_date_str, "%Y-%m-%dT%H:%M:%S%z")
-
-        # Calculate the time difference between the current time and the publication date.
-        time_difference = current_time - pub_date
-
-        # Check if the specified news sites is  present in the source URL and if the site is published within 5 minutes of the time now.
-        if site.lower() in source_url and time_difference.total_seconds() <= TIME_WINDOW:
-        # if site.lower() in source_url and time_difference.days <= 0.2:
+        try:
+            source_url = entry.get("source_url", "")  # Get the source URL from the entry.
+            pub_date_str = entry.get("pub_date", "")  # Get the publication date string from the entry.
             
-            # If the source URL contains any of the specified news sites, consider it a valid entry.
-            # Fetch the final URL after following any redirections.
-            response = requests.head(entry["url"], allow_redirects=True)
-            final_url = response.url
-            
-            # Update the url in the entry with the final_url.
-            entry["url"] = final_url
-            print(final_url)
+            # Convert the publication date string to a datetime object.
+            pub_date = pub_date = datetime.strptime(pub_date_str, "%Y-%m-%dT%H:%M:%S%z")
 
-            # If the source URL contains any of the specified news sites, consider it a valid entry.
-            valid_entries.append(entry)
+            # Calculate the time difference between the current time and the publication date.
+            time_difference = current_time - pub_date
+
+            # Check if the specified news sites is  present in the source URL and if the site is published within 5 minutes of the time now.
+            # if site.lower() in source_url and time_difference.total_seconds() <= TIME_WINDOW:
+            if site.lower() in source_url and time_difference.days <= 20:
+                
+                # If the source URL contains any of the specified news sites, consider it a valid entry.
+                # Fetch the final URL after following any redirections.
+                response = requests.head(entry["url"], allow_redirects=True)
+                final_url = response.url
+                
+                # Update the url in the entry with the final_url.
+                entry["url"] = final_url
+                print(final_url)
+
+                # If the source URL contains any of the specified news sites, consider it a valid entry.
+                valid_entries.append(entry)
+
+        except (ConnectionError, HTTPError, Timeout) as e:
+            # Handle connection errors, HTTP errors, and timeouts by printing an error message or logging.
+            # This allows the program to skip the current URL and continue with the next one.
+            print(f"Error fetching URL {entry['url']}: {e}")
+            continue  # Skip the current URL and continue with the next one in the loop.
 
     # Return the list of valid entries.
     return valid_entries
