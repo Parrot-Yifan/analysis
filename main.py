@@ -36,11 +36,12 @@ def main():
         print("Executing URL analysis.")
         authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
         url_analysis_function(supabase)
-        supabase.auth.sign_out()
+        supabase.auth.sign_out() 
         # Wait for 5 minutes before performing URL analysis again.
+        print("Waiting for 5 minutes.")
         time.sleep(5 * 60) 
+        
     
-
 
 if __name__ == "__main__":
     main()
