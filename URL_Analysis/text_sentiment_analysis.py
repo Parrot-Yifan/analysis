@@ -11,34 +11,35 @@ from db_interaction import * #Import database interaction functions.
 # ============================================================
 
 def sentiment_analysis_article(sentences):
-    # Maximum length for the sentiment analysis.
-    max_length = 128
+    max_length = 128  # Maximum length for the sentiment analysis model.
+    total_score = 0.0  # Initialize the total score.
 
-    # Initialize variables for accumulating scores/labels.
-    total_score = 0.0
-    total_sentences = len(sentences)
-
-    # Load the sentiment analysis model.
+    # Load the sentiment analysis model and tokenizer.
     model_name = "finiteautomata/bertweet-base-sentiment-analysis"
-    sentiment_analysis = pipeline(model=model_name)
+    sentiment_analysis = pipeline("sentiment-analysis", model=model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-    # Conduct sentiment analysis on each sentence in the list.
+    # Filter out or truncate sentences that exceed the maximum token length.
+    processed_sentences = []
     for sentence in sentences:
+        tokens = tokenizer.encode(sentence, add_special_tokens=True, truncation=False, max_length=max_length)
+        
+        # Check if token length, including special tokens, exceeds max_length
+        if len(tokens) < max_length: 
+            # If within the limit, decode tokens back to text for sentiment analysis
+            processed_sentences.append(sentence)
 
-        # If the number of words in the sentence exceeds the maximum length the model can handle, skip it.
-        if len(tokenizer.tokenize(sentence)) > max_length:
-            continue
+    # Update total_sentences to consider only processed sentences.
+    total_sentences = len(processed_sentences)
 
-        # Perform sentiment analysis on the sentence.
+    # Conduct sentiment analysis on each filtered or truncated sentence.
+    for sentence in processed_sentences:
         result = sentiment_analysis(sentence)
-
-        # Map the sentiment score using the label and accumulate to find the final score.
         mapped_score = map_sentiment_to_number(result[0]["label"], result[0]["score"])
         total_score += mapped_score
 
     # Calculate the average score.
-    average_score = total_score / total_sentences
+    average_score = total_score / total_sentences if total_sentences > 0 else 0
 
     return average_score
 
@@ -62,13 +63,23 @@ def sentiment_analysis_company(sentences, supabase):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     modified_sentences = []
+    processed_sentences = []
+    for sentence in sentences:
+        tokens = tokenizer.encode(sentence, add_special_tokens=True, truncation=False, max_length=max_length)
+        
+        # Check if token length, including special tokens, exceeds max_length
+        if len(tokens) < max_length:
+            # If it's too long, you can choose to truncate manually or skip the sentence
+            # continue  # Skipping here; you can also truncate manually if needed
+            # tokens = tokens[:max_length]
+            # continue
+            processed_sentences.append(sentence)
+        
+    # Update total_sentences to consider only processed sentences.
+    total_sentences = len(processed_sentences)
 
     # Conduct sentiment analysis on each sentence in the list.
-    for sentence in sentences:
-
-        # If the number of words in the sentence exceeds the maximum length the model can handle, skip it.
-        if len(tokenizer.tokenize(sentence)) >= max_length:
-            continue
+    for sentence in processed_sentences:
 
         # Perform sentiment analysis on the sentence.
         result = sentiment_analysis(sentence)
@@ -84,8 +95,9 @@ def sentiment_analysis_company(sentences, supabase):
         )
         modified_sentences.append(modified_sentence)
 
+    # print(modified_sentences)
     # Calculate the average score.
-    average_score = total_score / total_sentences
+    average_score = total_score / total_sentences if total_sentences > 0 else 0
 
     return average_score, modified_sentences
 
@@ -133,15 +145,15 @@ def find_mentioned_tickers(sentence, supabase):
     company_names = db_data["company_names"]
 
     mentioned_companies = [
-            # company for company in company_names if {company} in sentence
-            company for company in company_names if f'{company}' in sentence
-        ]
+           company_name 
+           for company_entry in company_names 
+           for company_name in company_entry['names'] 
+           if f'{company_name}' in sentence
+    ]
     
     tickers = get_tickers(mentioned_companies, supabase)
 
     return tickers
-
-
 
 
 # ============================================================
