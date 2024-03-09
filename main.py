@@ -20,6 +20,10 @@ from supabase import (
 # START OF PROGRAM
 # ============================================================
 
+SUPABASE_URL = "https://irendefjtnvixqkiehya.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlyZW5kZWZqdG52aXhxa2llaHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDUwNzcxNTUsImV4cCI6MjAyMDY1MzE1NX0.IaTi8UJP4JCcjP35RUNu2gLE3qd_CzQcHgy2y3UTaew"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 def main():
 
     '''
@@ -31,9 +35,14 @@ def main():
     
         print("Executing.")
         
+        # Authenticate with Supabase using email and password.
+        authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
         # Call the stock price prediction program.
         main_stock_prediction_function()
+        # Sign out from Supabase authentication.
+        supabase.auth.sign_out()
 
+        print("Waiting for 5 minutes.")
         # Wait for 5 minutes before performing URL analysis again.
         time.sleep(5 * 60) 
 
