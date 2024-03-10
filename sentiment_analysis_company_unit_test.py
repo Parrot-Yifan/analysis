@@ -41,12 +41,12 @@ class TestSentimentAnalysisCompany(unittest.TestCase):
     def setUp(self):
         # self.expected_scores = [-0.166, -0.155, 0.051, -0.091, 0.021]  # first article
         # self.expected_scores = [-0.133, -0.126] # second article
-        self.expected_scores = [-0.311]
+        self.expected_scores = [-0.311] # third article
 
     def test_sentiment_analysis_company(self):
 
         actual_scores = []
-
+        
         for name in company_mentioned['2']:
             relevant_sentences = get_relevant_sentences(articlebody[2], name)
             actual_scores.append(sentiment_analysis_company(relevant_sentences, supabase)[0])
