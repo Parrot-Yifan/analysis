@@ -46,16 +46,27 @@ authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.
 class TestSentimentAnalysisCompany(unittest.TestCase):
 
     def setUp(self):
-        # self.expected_scores = [-0.166, -0.155, 0.051, -0.091, 0.021]  # first article
-        self.expected_scores = [-0.187, -0.139, -0.142, -0.126]  # second article
-        # self.expected_scores = [-0.311] # third article
+        # self.expected_scores = [-0.166, -0.155, 0.051, -0.091, 0.021]  # first article expected result
+        # self.expected_scores = [-0.187, -0.139, -0.142, -0.126]  # second article expected result
+        self.expected_scores = [-0.311]  # third article  # third article expected result
 
     def test_sentiment_analysis_company(self):
 
         actual_scores = []
 
-        for name in company_mentioned['1']:
-            relevant_sentences = get_relevant_sentences(articlebody[1], name)
+        # first article actual result
+        # for name in company_mentioned['0']:
+        #     relevant_sentences = get_relevant_sentences(articlebody[0], name)
+        #     actual_scores.append(sentiment_analysis_company(relevant_sentences, supabase)[0])
+
+        # second article actual result
+        # for name in company_mentioned['1']:
+        #     relevant_sentences = get_relevant_sentences(articlebody[1], name)
+        #     actual_scores.append(sentiment_analysis_company(relevant_sentences, supabase)[0])
+
+        # third article actual result
+        for name in company_mentioned['2']:
+            relevant_sentences = get_relevant_sentences(articlebody[2], name)
             actual_scores.append(sentiment_analysis_company(relevant_sentences, supabase)[0])
 
         for expected_score, actual_score in zip(self.expected_scores, actual_scores):
