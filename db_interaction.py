@@ -1,43 +1,67 @@
-from prophet import Prophet
-import yfinance as yf
-import pandas as pd
-from datetime import datetime, timedelta,timezone
-from db_interaction import *
+from supabase import (
+    create_client,
+    Client,
+)  # Import Supabase client for interacting with the Supabase database
 
-def main_stock_prediction_function(supabase):
+# ============================================================
+# START OF PROGRAM
+# ============================================================
+
+def get_tickers(supabase):
+
     '''
-    The main function for prediction, whcich calls all other functions
+    Given a list of companies, it converts the list into a list of tickers.
     '''
-    tickers = get_tickers(supabase)
 
-    for ticker in tickers:
-        prediction = forecast_5min(ticker)
-        remove_existing_company_stock(ticker,supabase)
-        insert_company_stock(ticker, prediction, supabase)
+    tickers = []
 
+    # Retrieve tickers.
+    ticker_name_query = supabase.table('company').select('ticker').execute()
 
-def forecast_5min(ticker):
+    # Extract the 'ticker' value from the dictionary and append it to the tickers list.
+    if ticker_name_query.data:
+        for ticker in ticker_name_query.data:
+            ticker_value = ticker.get('ticker')
+            if ticker_value:
+                tickers.append(ticker_value)
+
+    return tickers
+
+def remove_existing_company_stock(ticker,supabase):
+
     '''
-    Forecast one ticker for next five minutes
+    Deletes the existing entry of a company's stock predictions.
     '''
-    #Get the data on yfinance and process it into a format acceptable to prophet
-    df = yf.download(tickers = ticker, period='10d', interval = '5m')
-    df.reset_index(inplace=True)
-    df['Datetime'] = pd.to_datetime(df['Datetime']).apply(lambda x: x.replace(tzinfo=None))
-    df.rename(columns={'Datetime': 'ds', 'Close': 'y'}, inplace=True)
-    df = df[['ds','y']]
 
-    #Import data into the prophet model and construct a framework for future data, then make predictions
-    m = Prophet()
-    m.fit(df)
-    future = m.make_future_dataframe(periods=768, freq='5min')  #next 768/12=64 hours data
-    forecast = m.predict(future)
-    forecast['ds'] = pd.to_datetime(forecast['ds'])
+    # Retrieve company_id using the company name.
+    company_id_query = supabase.table('company').select('id').eq('ticker', ticker).execute()
+    # Assuming only one entry should match each condition.
+    if len(company_id_query.data) == 1:
+        company_id = company_id_query.data[0]['id']
+        print(company_id)
+        data, count = supabase.table('company_stock').delete().eq('company_id', company_id).execute()
+        print(data)
 
-    #Filter the data for the next five minutes and convert it into a format acceptable to supabase
-    now = datetime.now()
-    next_5_min = now + timedelta(minutes=(5 - now.minute % 5), seconds=-now.second, microseconds=-now.microsecond)
-    next_5_min_data = forecast[forecast['ds'] == next_5_min.strftime('%Y-%m-%d %H:%M:%S')]
-    time = next_5_min_data['ds'].tolist()
-    yhat = next_5_min_data['yhat'].tolist()
-    return yhat[0]
+
+def insert_company_stock(ticker, stock, supabase):
+
+    '''
+    Inserts an entry into the company_stock table.
+    '''
+    
+     # Retrieve company_id using the company name.
+    company_id_query = supabase.table('company').select('id').eq('ticker', ticker).execute()
+
+    # Assuming only one entry should match each condition.
+    if len(company_id_query.data) == 1:
+        company_id = company_id_query.data[0]['id']
+
+        # Insert company_news entry into the 'company_news' table.
+        data, count = supabase.table('company_stock').insert({
+            "company_id": company_id,
+            "stock_impact": stock
+        }).execute()
+
+# ============================================================
+# END OF PROGRAM
+# ============================================================
