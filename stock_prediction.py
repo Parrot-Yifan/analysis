@@ -4,16 +4,16 @@ import pandas as pd
 from datetime import datetime, timedelta,timezone
 from db_interaction import *
 
-def main_stock_prediction_function():
+def main_stock_prediction_function(supabase):
     '''
     The main function for prediction, whcich calls all other functions
     '''
-    tickers = get_tickers()
+    tickers = get_tickers(supabase)
 
     for ticker in tickers:
-        prediction, datetime = forecast_5min(ticker)
-        remove_existing_company_stock(ticker)
-        insert_company_stock(ticker, prediction, datetime)
+        prediction = forecast_5min(ticker)
+        remove_existing_company_stock(ticker,supabase)
+        insert_company_stock(ticker, prediction, supabase)
 
 
 def forecast_5min(ticker):
@@ -39,9 +39,5 @@ def forecast_5min(ticker):
     next_5_min = now + timedelta(minutes=(5 - now.minute % 5), seconds=-now.second, microseconds=-now.microsecond)
     next_5_min_data = forecast[forecast['ds'] == next_5_min.strftime('%Y-%m-%d %H:%M:%S')]
     time = next_5_min_data['ds'].tolist()
-    datetime_object = time[0].to_pydatetime()
-    output_datetime_str = datetime_object.replace(
-        tzinfo=timezone.utc
-    ).isoformat()
     yhat = next_5_min_data['yhat'].tolist()
-    return output_datetime_str,yhat[0]
+    return yhat[0]
