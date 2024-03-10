@@ -4,7 +4,6 @@ from URL_Analysis.url_analysis import format_body
 from url_scraping import scrape
 from supabase import create_client, Client
 from text_sentiment_analysis import sentiment_analysis_company, find_mentioned_tickers
-from url_analysis import get_relevant_sentences
 
 url_dict = {
     'https://www.theverge.com': 'https://www.theverge.com/2024/3/6/24091367/semiconductor-manufacturing-us-electricity-consumption-renewable-energy-report',
@@ -35,31 +34,20 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
 
-# for name in company_mentioned['1']:
-#     relevant_sentences = get_relevant_sentences(articlebody[1], name)
-#     print(sentiment_analysis_company(relevant_sentences, supabase))
-
-# for article in articlebody:
-#     print(find_mentioned_tickers(article, supabase))
-
 
 class TestSentimentAnalysisCompany(unittest.TestCase):
-
     def setUp(self):
-        # self.expected_scores = [-0.166, -0.155, 0.051, -0.091, 0.021]  # first article
-        self.expected_scores = [-0.187, -0.139, -0.142, -0.126]  # second article
-        # self.expected_scores = [-0.311] # third article
+        # self.expected_result = company_mentioned['0']  # first article expected result
+        # self.expected_result = company_mentioned['1']  # second article expected result
+        self.expected_result = company_mentioned['2']  # third article expected result
 
-    def test_sentiment_analysis_company(self):
+    def test_tickers_mentioned(self):
 
-        actual_scores = []
+        # actual_results = find_mentioned_tickers(articlebody[0], supabase)  # first article actual result
+        # actual_results = find_mentioned_tickers(articlebody[1], supabase)  # second article actual result
+        actual_results = find_mentioned_tickers(articlebody[2], supabase)  # third article actual result
 
-        for name in company_mentioned['1']:
-            relevant_sentences = get_relevant_sentences(articlebody[1], name)
-            actual_scores.append(sentiment_analysis_company(relevant_sentences, supabase)[0])
-
-        for expected_score, actual_score in zip(self.expected_scores, actual_scores):
-            self.assertAlmostEqual(expected_score, actual_score, delta=0.005)
+        self.assertEquals(self.expected_result, actual_results)
 
 
 if __name__ == '__main__':
