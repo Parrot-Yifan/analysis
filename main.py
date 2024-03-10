@@ -38,7 +38,7 @@ def main():
         # Authenticate with Supabase using email and password.
         authentication = supabase.auth.sign_in_with_password({"email": "tudor0404@gmail.com", "password": "test123"})
         # Call the stock price prediction program.
-        main_stock_prediction_function()
+        main_stock_prediction_function(supabase)
         # Sign out from Supabase authentication.
         supabase.auth.sign_out()
 
