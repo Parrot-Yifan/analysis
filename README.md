@@ -1,12 +1,12 @@
 # URL Analysis program
 
-This Python program performs comprehensive analysis of URLs related to companies and news sources. It uses various functionalities to extract and analyze relevant information from the web.
+This Python program performs comprehensive analysis of URLs related to companies and news sources. It uses various functionalities to extract and analyse relevant information from the web.
 
 ## Key Features
 
 -   URL Fetching: Retrieves relevant URLs based on company and news source, ensuring they are recently published (within a customizable time window).
 -   URL Scraping: Extracts the main body of the article content from the scraped webpage.
--   URL Sentiment Analysis: Analyzes the overall sentiment of the article and identifies sentiment towards specific companies mentioned within the text.
+-   URL Sentiment Analysis: Analyses the overall sentiment of the article and identifies sentiment towards specific companies mentioned within the text.
 -   URL Summarization: Creates a concise summary of the extracted article content.
 -   Database Interaction: Provides methods for interacting with a database to store and manage the analysed data.
 
