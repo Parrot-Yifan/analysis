@@ -5,11 +5,11 @@ This Python program leverages the power of Facebook Prophet to predict stock pri
 ## Key Features
 
 -   Future-Looking Insights: Predict stock prices for various companies with a 5-minute time horizon.
--   Data-Driven Decisions: Integrate seamlessly with your workflow by storing and managing the analyzed data using the included database interaction module (configuration required).
+-   Data-Driven Decisions: Integrate with your workflow by storing and managing the analysed data using the included database interaction module (configuration required).
 
 ## Program Structure
 
-For improved maintainability and readability, the program is modularized into several Python scripts:
+For improved maintainability and readability, the program is modularised into several Python scripts:
 
 -   Main Program (main.py): The central hub, orchestrating the entire process by calling subprograms for prediction and data management at regular intervals (default: 5 minutes).
 -   Stock Price Prediction (stock_prediction.py): Employs Prophet to forecast future stock prices using historical data obtained from Yfinance.
