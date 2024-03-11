@@ -1,19 +1,19 @@
 # Stock Price Prediction program
 
-This Python program performs stock price predictions 5 minutes into the future for companies using data from Yfinance and time series forecasting using Prophet API. 
+This Python program leverages the power of Facebook Prophet to predict stock prices 5 minutes into the future. It utilizes Yfinance to retrieve historical market data and then applies Prophet's time series forecasting capabilities to make informed predictions.
 
 ## Key Features
 
--   Stock Price Prediction: Predicts stock prices of companies 5 minutes into the future.
--   Database Interaction: Provides methods for interacting with a database to store and manage the analysed data.
+-   Future-Looking Insights: Predict stock prices for various companies with a 5-minute time horizon.
+-   Data-Driven Decisions: Integrate seamlessly with your workflow by storing and managing the analyzed data using the included database interaction module (configuration required).
 
 ## Program Structure
 
-The program is modularized into several Python scripts for improved maintainability and readability:
+For improved maintainability and readability, the program is modularized into several Python scripts:
 
-1.  Main Program (main.py): Orchestrates the overall workflow by calling subprograms for URL analysis at regular intervals (default: 5 minutes).
-2.  Stock Price Prediction (stock_prediction.py): Predicts future stock price of companies using Prophet API.
-3.  Database Interaction Module (db_interaction.py): Provides methods for database interactions (configuration required for specific usage).
+-   Main Program (main.py): The central hub, orchestrating the entire process by calling subprograms for prediction and data management at regular intervals (default: 5 minutes).
+-   Stock Price Prediction (stock_prediction.py): Employs Prophet to forecast future stock prices using historical data obtained from Yfinance.
+-   Database Interaction Module (db_interaction.py): Provides methods for interacting with a database, allowing you to store and manage the predicted values (requires separate configuration).
 
 Note: This program uses external libraries including `supabase`, `pandas`, `yfinance` and `prophet`. Install the latest versions for all.
 
@@ -40,3 +40,7 @@ Note: This program uses external libraries including `supabase`, `pandas`, `yfin
         ```
         python main.py
         ```
+
+3.  Customization:
+
+    -   Modify the configuration within `db_interaction.py` to connect to your preferred database for storing predicted data (optional).
