@@ -41,6 +41,6 @@ Note: This program uses external libraries including `supabase`, `pandas`, `yfin
         python main.py
         ```
 
-3.  Customization:
+3.  Customisation:
 
     -   Modify the configuration within `db_interaction.py` to connect to your preferred database for storing predicted data (optional).
