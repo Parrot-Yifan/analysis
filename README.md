@@ -1,6 +1,6 @@
 # Stock Price Prediction program
 
-This Python program leverages the power of Facebook Prophet to predict stock prices 5 minutes into the future. It utilizes Yfinance to retrieve historical market data and then applies Prophet's time series forecasting capabilities to make informed predictions.
+This Python program leverages the power of Facebook Prophet to predict stock prices 5 minutes into the future. It uses Yfinance to retrieve historical market data and then applies Prophet's time series forecasting capabilities to make informed predictions.
 
 ## Key Features
 
