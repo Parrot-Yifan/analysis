@@ -15,7 +15,7 @@ The program is modularized into several Python scripts for improved maintainabil
 2.  Stock Price Prediction (stock_prediction.py): Predicts future stock price of companies using Prophet API.
 3.  Database Interaction Module (db_interaction.py): Provides methods for database interactions (configuration required for specific usage).
 
-Note: This program uses external libraries including `supabase`, `BeautifulSoup4` (`bs4`), `html2text`, `requests`, and `textwrap`.
+Note: This program uses external libraries including `supabase`, `pandas`, `yfinance` and `prophet`. Install the latest versions for all.
 
 ## Usage Instructions
 
@@ -27,7 +27,7 @@ Note: This program uses external libraries including `supabase`, `BeautifulSoup4
         Bash
 
         ```
-        pip install supabase    
+        pip install supabase pandas yfinance prophet    
         ```
 
 2.  Running the Program:
