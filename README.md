@@ -1,43 +1,55 @@
-# Analysis program
+# URL Analysis program
 
-This analysis program will conduct URL analysis with the following structure:
+This Python program performs comprehensive analysis of URLs related to companies and news sources. It uses various functionalities to extract and analyze relevant information from the web.
 
-1. Main program.
-2. URL fetching.
-3. URL scraping.
-4. URL sentiment analysis.
-5. URL summarization.
-6. URL analysis.
-7. Database interaction.
+## Key Features
 
-### Main program.
+-   URL Fetching: Retrieves relevant URLs based on company and news source, ensuring they are recently published (within a customizable time window).
+-   URL Scraping: Extracts the main body of the article content from the scraped webpage.
+-   URL Sentiment Analysis: Analyzes the overall sentiment of the article and identifies sentiment towards specific companies mentioned within the text.
+-   URL Summarization: Creates a concise summary of the extracted article content.
+-   Database Interaction: Provides methods for interacting with a database to store and manage the analysed data.
 
-This program will simply call the URL analysis subprogram every 5 minutes.
+## Program Structure
 
-Call the URL fetching program every 5 minutes.
+The program is modularized into several Python scripts for improved maintainability and readability:
 
-### URL fetching.
+1.  Main Program (main.py): Orchestrates the overall workflow by calling subprograms for URL analysis at regular intervals (default: 5 minutes).
+2.  URL Fetching Program (url_fetching.py): Fetches URLs based on predefined criteria and validates their publication time.
+3.  URL Scraping Program (url_scraping.py): Extracts the relevant article body content from the scraped webpage.
+4.  URL Analysis Program (url_analysis.py): Handles the core logic of URL analysis, including sentiment analysis and summarization.
+5.  Database Interaction Module (db_interaction.py): Provides methods for database interactions (configuration required for specific usage).
 
-URL's are fetched based on company and news source and are validated to see if they are published within 5 minutes from present time.
+Note: This program uses external libraries including `supabase`, `BeautifulSoup4` (`bs4`), `html2text`, `requests`, and `textwrap`.
 
-### URL scraping.
+## Usage Instructions
 
-This program will scrape the news site to obtain the relevant body of the article.
+1.  Prerequisites:
 
-### URL analysis.
+    -   Python version 3.10 or later
+    -   Installation of required libraries:
 
-All main logic of URL analysis is handled here.
+        Bash
 
-### URL summarization.
+        ```
+        pip install supabase bs4 html2text requests textwrap
 
-All summarization is handled here.
+        ```
 
-### URL sentiment analysis.
+2.  Running the Program:
 
-Sentiment analysis of the entire article and on a given company against the article is processed here.
+    -   Clone the repository from GitHub.
+    -   Run the main program using:
 
-### Database interaction.
+        Bash
 
-Consists of methods used to interact with the database.
+        ```
+        python main.py
 
-#
+        ```
+
+
+3.  Customization:
+
+    -   Modify the `TIME_WINDOW` constant within `url_fetching.py` to adjust the time window for fetching recent articles.
+
