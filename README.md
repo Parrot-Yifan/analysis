@@ -33,7 +33,6 @@ Note: This program uses external libraries including `supabase`, `BeautifulSoup4
 
         ```
         pip install supabase bs4 html2text requests textwrap
-
         ```
 
 2.  Running the Program:
@@ -45,7 +44,6 @@ Note: This program uses external libraries including `supabase`, `BeautifulSoup4
 
         ```
         python main.py
-
         ```
 
 
