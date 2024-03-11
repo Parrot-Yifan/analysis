@@ -20,7 +20,7 @@ The program is modularized into several Python scripts for improved maintainabil
 4.  URL Analysis Program (url_analysis.py): Handles the core logic of URL analysis, including sentiment analysis and summarization.
 5.  Database Interaction Module (db_interaction.py): Provides methods for database interactions (configuration required for specific usage).
 
-Note: This program uses external libraries including `supabase`, `BeautifulSoup4` (`bs4`), `html2text`, `requests`, and `textwrap`.
+Note: This program uses external libraries including `supabase`, `BeautifulSoup4` (`bs4`), `html2text`, `requests`, and `textwrap`. Install the latest verions for all.
 
 ## Usage Instructions
 
@@ -46,8 +46,9 @@ Note: This program uses external libraries including `supabase`, `BeautifulSoup4
         python main.py
         ```
 
-
 3.  Customization:
+
+    -   Modify the configuration within `db_interaction.py` to connect to your preferred database for storing predicted data (optional).
 
     -   Modify the `TIME_WINDOW` constant within `url_fetching.py` to adjust the time window for fetching recent articles.
 
